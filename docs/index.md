@@ -1,8 +1,8 @@
-# Documentation Système Microservices POS + E-commerce - Lab 5
+# Documentation Système Microservices POS + E-commerce - Lab 6
 
 ## Vue d'ensemble
 
-Le **Lab 5** représente l'évolution finale vers une **architecture microservices cloud-native** intégrant un **écosystème commercial hybride POS + E-commerce** avec Kong Gateway et observabilité production-ready.
+Le **Lab 6** représente l'évolution vers une **architecture microservices avec orchestration saga** intégrant un **écosystème commercial hybride POS + E-commerce** avec Kong Gateway, observabilité production-ready et coordination de transactions distribuées.
 
 ### Évolution architecturale
 
@@ -17,6 +17,13 @@ Le **Lab 5** représente l'évolution finale vers une **architecture microservic
 - **Database per Service** : 7 PostgreSQL + 1 Redis isolés
 - **Observabilité stack** : Prometheus + Grafana + dashboards métier
 
+**Lab 6 : Architecture microservices avec Saga Orchestration**
+- **9 microservices autonomes** : Product, Customer, Cart, Order, Inventory, Sales, Reporting, Saga Orchestrator, Payment
+- **Saga Orchestration** : Coordination synchrone de transactions distribuées
+- **Compensation automatique** : Rollback intelligent en cas d'échec
+- **Database per Service** : 9 PostgreSQL + 1 Redis isolés
+- **Observabilité étendue** : Métriques saga et monitoring transactionnel
+
 ## Architecture microservices
 
 ### Services métier
@@ -30,6 +37,8 @@ Le **Lab 5** représente l'évolution finale vers une **architecture microservic
 | **Customer Service** | 8005 | Authentification et profils clients | PostgreSQL (customer_db) |
 | **Cart Service** | 8006 | Panier e-commerce load-balanced | Redis (cart_cache) |
 | **Order Service** | 8007 | Commandes et checkout e-commerce | PostgreSQL (order_db) |
+| **Saga Orchestrator** | 8008 | Orchestration saga et compensation | In-Memory (saga_state) |
+| **Payment Service** | 8009 | Traitement paiements et remboursements | PostgreSQL (payment_db) |
 
 ### Infrastructure
 
@@ -111,6 +120,10 @@ Les ADRs documentent les décisions clés du passage vers les microservices :
 - [Séquence reporting](uml/images/sequence_rapport.png) : Agrégation multi-services
 - [Séquence load balancing](uml/images/sequence_tableau_bord.png) : Cart Service failover
 
+**Diagrammes Saga Orchestration** :
+- [Machine d'état Saga](uml/images/saga-state-machine.png) : États et transitions saga
+- [Séquence saga succès](uml/images/saga-sequence-success.png) : Flux nominal de commande
+
 ## Déploiement et utilisation
 
 ### Démarrage rapide
@@ -118,7 +131,7 @@ Les ADRs documentent les décisions clés du passage vers les microservices :
 ```bash
 # Cloner le repository
 git clone <repository-url>
-cd log430-lab5
+cd log430-lab6
 
 # Déploiement microservices complet
 cd microservices/
