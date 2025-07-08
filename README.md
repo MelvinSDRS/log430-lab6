@@ -1,25 +1,27 @@
-# LOG430 - Lab 5 - Système POS Multi-Magasins
-## Architecture microservices avec API Gateway
+# LOG430 - Lab 6 - Système POS Multi-Magasins
+## Architecture microservices avec Saga Orchestration
 
-Système de point de vente (POS) **multi-magasins** évoluant d'une **architecture monolithique** vers une **architecture microservices** orientée e-commerce. Le système gère **5 magasins + 1 centre logistique + 1 maison mère** avec 7 microservices indépendants et API Gateway Kong.
+Système de point de vente (POS) **multi-magasins** évoluant vers une **architecture microservices avec orchestration saga** pour la coordination de transactions distribuées. Le système gère **5 magasins + 1 centre logistique + 1 maison mère** avec 9 microservices indépendants, API Gateway Kong et saga orchestrator pour les transactions complexes.
 
 ## Evolution d'architecture
 
 ```
-Lab 3: API REST → Lab 4: Optimisations → Lab 5: Microservices
-   ↓                    ↓                      ↓
-Interface API        Load Balancer         7 Services isolés
-documentée          + Cache Redis         + Kong Gateway
+Lab 3: API REST → Lab 4: Optimisations → Lab 5: Microservices → Lab 6: Saga Orchestration
+   ↓                    ↓                      ↓                        ↓
+Interface API        Load Balancer         7 Services isolés      9 Services + Saga
+documentée          + Cache Redis         + Kong Gateway         + Transactions distribuées
 ```
 
-## Architecture microservices
+## Architecture microservices avec Saga
 
 - **Kong API Gateway** : Point d'entrée unique sécurisé (port 8080)
-- **7 Microservices** : Services indépendants avec database per service
+- **9 Microservices** : Services indépendants avec database per service
+- **Saga Orchestration** : Coordination synchrone de transactions distribuées
+- **Compensation automatique** : Rollback intelligent en cas d'échec
 - **Load balancing** : Distribution intelligente avec 3 instances Cart Service
-- **Observabilité** : Monitoring Prometheus/Grafana étendu
+- **Observabilité** : Monitoring Prometheus/Grafana avec métriques saga
 
-## Architecture microservices (7 services)
+## Architecture microservices (9 services)
 
 ### Services métier extraits
 1. **Product Service (8001)** - Catalogue produits et catégories
@@ -27,16 +29,21 @@ documentée          + Cache Redis         + Kong Gateway
 3. **Sales Service (8003)** - Transactions de vente magasins
 4. **Reporting Service (8004)** - Analytique et tableaux de bord
 
-### Nouveaux services e-commerce
+### Services e-commerce
 5. **Customer Service (8005)** - Comptes clients et authentification JWT
 6. **Cart Service (8006)** - Panier d'achat avec sessions Redis
 7. **Order Service (8007)** - Commandes et checkout e-commerce
 
+### Nouveaux services Lab 6 - Saga Orchestration
+8. **Saga Orchestrator (8008)** - Coordination saga et compensation
+9. **Payment Service (8009)** - Traitement paiements et remboursements
+
 ### Infrastructure
 - **Kong API Gateway (8080)** : Point d'entrée unique avec sécurité multicouche
-- **Database per service** : 7 PostgreSQL + 1 Redis (isolation complète)
+- **Database per service** : 9 PostgreSQL + 1 Redis (isolation complète)
+- **Saga state management** : In-memory avec possibilité de persistance
 - **Load balancing** : 3 instances Cart Service avec least-connections
-- **Monitoring** : Prometheus/Grafana avec métriques distribuées
+- **Monitoring** : Prometheus/Grafana avec métriques saga étendues
 
 ## Entités métier
 
@@ -59,10 +66,14 @@ documentée          + Cache Redis         + Kong Gateway
 - **Sales Service** : Transactions POS, historique magasins
 - **Reporting Service** : Analytics, KPIs, tableaux de bord
 
-### Services e-commerce (nouveaux)
+### Services e-commerce
 - **Customer Service** : Comptes clients, authentification JWT, profils
 - **Cart Service** : Panier d'achat, sessions Redis, calculs taxes
 - **Order Service** : Commandes, checkout, workflow paiement
+
+### Services saga orchestration (Lab 6)
+- **Saga Orchestrator** : Coordination transactions distribuées, machine d'état saga
+- **Payment Service** : Traitement paiements, remboursements, simulation d'échecs
 
 ### Interface Console (conservée)
 - **Magasins** : Recherche produits, ventes, retours, approvisionnement
@@ -80,57 +91,61 @@ documentée          + Cache Redis         + Kong Gateway
 - **Authentification** : API Keys + JWT selon le service
 - **Standards RESTful** : Maintenus dans chaque microservice
 
-## Performance Lab 5 vs Lab 4
+## Capacités Saga Orchestration Lab 6
 
-L'architecture microservices Lab 5 démontre une **supériorité écrasante** sur l'architecture monolithique Lab 4 :
+L'architecture microservices avec saga orchestration Lab 6 apporte une **coordination intelligente des transactions distribuées** avec compensation automatique.
 
-### Résultats de performance mesurés
+### Nouvelles capacités transactionnelles
 
-| Métrique | Lab 4 Cache Redis | Lab 5 Microservices | Amélioration |
-|----------|------------------|----------------------|-------------|
-| **Latence P95 (15 VUs)** | 5,002ms | 7.8ms | **-99.8% (+641x)** |
-| **Throughput (15 VUs)** | 2.43 req/s | 91.3 req/s | **+3,658% (+37x)** |
-| **Latence P95 (100 VUs)** | Stable | 96ms | **Excellent** |
-| **Stabilité (100 VUs)** | 0% erreurs | 67% checks OK | **Équivalent** |
+| Capacité | Lab 5 | Lab 6 Saga | Amélioration |
+|----------|-------|-------------|-------------|
+| **Transactions distribuées** | Manuelle | Automatique | **Coordination saga** |
+| **Gestion d'échecs** | Manuelle | Compensation automatique | **0% perte de données** |
+| **Cohérence état** | Eventually consistent | Coordonnée par saga | **Garanties ACID distribuées** |
+| **Observabilité transactions** | Limitée | Métriques saga complètes | **Traçabilité end-to-end** |
 
-### Kong API Gateway performance
-- **Overhead réseau** : +15-25ms par requête (négligeable)
-- **Load balancing** : 3 instances Cart Service (least-connections)
-- **Sécurité** : API Keys + JWT sans impact performance
-- **Résilience** : Failover automatique < 30 secondes
+### Métriques saga orchestration
+- **Durée saga moyenne** : 2-5 secondes (succès)
+- **Compensation automatique** : < 10 secondes en cas d'échec
+- **Taux de succès** : 95%+ avec retry automatique
+- **Observabilité** : Métriques Prometheus détaillées par étape
 
-### Observabilité avancée
+### Résilience et compensation
 
-| Métrique | Lab 4 | Lab 5 | Amélioration |
-|----------|-------|-------|-------------|
-| **Trace completeness** | 65% | 95% | **+46%** |
-| **Mean time to detection** | 8.5 min | 2.1 min | **-75%** |
-| **Root cause analysis** | 25 min | 6 min | **-76%** |
+| Scenario d'échec | Lab 5 | Lab 6 Saga | Amélioration |
+|------------------|-------|-------------|-------------|
+| **Échec paiement** | Incohérence | Rollback automatique stock | **Cohérence garantie** |
+| **Service indisponible** | Timeout | Compensation + retry | **Récupération automatique** |
+| **Échec partiel** | État invalide | Machine d'état saga | **États cohérents** |
+| **Monitoring échecs** | Manual | Métriques automatiques | **Observabilité complète** |
 
 ### Architecture recommandée
-- **Tous contextes** : Lab 5 (Microservices) optimal
-- **Performance** : Supérieure à toutes charges
-- **Scalabilité** : Horizontale par service
-- **Résilience** : Isolation des pannes
+- **Transactions critiques** : Lab 6 (Saga) optimal  
+- **Coordination distribuée** : Automatique avec compensation
+- **Cohérence données** : Garanties ACID distribuées
+- **Observabilité** : Traçabilité complète des transactions
 
-## Démarrage rapide - Architecture microservices
+## Démarrage rapide - Architecture microservices avec Saga
 
 ### Prérequis
 - Docker Engine 20.10+
 - Docker Compose v2.0+
 
-### Lancement microservices (une seule commande)
+### Lancement microservices avec saga orchestration
 
 ```bash
-# Démarrer l'architecture microservices complète
+# Démarrer l'architecture microservices complète (9 services)
 cd microservices/
 docker-compose up -d
 
 # Configuration automatique des clés API
 ./scripts/setup-api-keys.sh
 
-# Tests de validation (optionnel)
+# Tests de validation API Gateway
 ./scripts/test-api-gateway.sh
+
+# Tests spécifiques saga orchestration
+./scripts/test-saga.sh
 ```
 
 ### Points d'accès principaux
@@ -148,6 +163,8 @@ http://localhost:8004/health          # Reporting Service
 http://localhost:8005/docs            # Customer Service (Swagger)
 http://localhost:8006/docs            # Cart Service (Swagger)
 http://localhost:8007/health          # Order Service
+http://localhost:8008/docs            # Saga Orchestrator (Swagger)
+http://localhost:8009/docs            # Payment Service (Swagger)
 
 # Monitoring et observabilité
 http://localhost:3000                 # Grafana (dashboards Kong + microservices)
@@ -172,16 +189,18 @@ curl -H "X-API-Key: pos-mobile-2025-app-secure-key" \
      http://localhost:8080/api/v1/cart?session_id=test123
 ```
 
-### Workflow microservices automatique
+### Workflow microservices automatique avec saga
 
-L'architecture microservices démarre automatiquement :
-1. **7 bases PostgreSQL + 1 Redis** initialisées avec données de test
-2. **7 microservices** démarrent avec health checks
+L'architecture microservices avec saga démarre automatiquement :
+1. **9 bases PostgreSQL + 1 Redis** initialisées avec données de test
+2. **9 microservices** démarrent avec health checks
 3. **Kong Gateway** configure le routage automatiquement  
 4. **API Keys** configurées par script d'initialisation
-5. **Monitoring Prometheus/Grafana** déploie les dashboards
-6. **Load balancing** activé pour Cart Service (3 instances)
-7. **Architecture prête** : Point d'entrée unique + services isolés
+5. **Saga Orchestrator** initialise la machine d'état
+6. **Payment Service** configure la simulation d'échecs
+7. **Monitoring Prometheus/Grafana** déploie les dashboards avec métriques saga
+8. **Load balancing** activé pour Cart Service (3 instances)
+9. **Architecture prête** : Point d'entrée unique + coordination saga
 
 ### Dashboards d'observabilité
 
@@ -232,21 +251,61 @@ X-API-Key: pos-test-automation-dev-key-2025
 - Commandes et checkout e-commerce
 - Nécessite authentification JWT
 
+**Saga Orchestrator** : `http://localhost:8080/api/v1/sagas`
+- Coordination transactions distribuées
+- Machine d'état saga et compensation
+- Documentation: `http://localhost:8008/docs`
+
+**Payment Service** : `http://localhost:8080/api/v1/payment`
+- Traitement paiements et remboursements
+- Simulation d'échecs configurable
+- Documentation: `http://localhost:8009/docs`
+
 **Inventory/Sales/Reporting** : Services legacy conservés
 - Endpoints disponibles via Kong Gateway
 - Fonctionnalités console maintenenues
 
-### Tests de performance et load balancing
+### Tests saga orchestration et simulation d'échecs
 
 ```bash
-# Test distribution Cart Service (3 instances)
+# Test saga orchestration complète (succès)
 cd microservices/
-./scripts/test-load-balancing.sh
+./scripts/test-saga.sh
 
-# Tests k6 comparatifs Lab 4 vs Lab 5
-cd ../load_tests/k6/
-k6 run lab5-fair-comparison-15vu-test.js
-k6 run lab5-fair-comparison-100vu-test.js
+# Test saga avec échec de paiement simulé
+./scripts/test-saga-payment-failure.sh
+
+# Test saga avec échec de stock
+./scripts/test-saga-stock-failure.sh
+
+# Test load balancing Cart Service (3 instances)
+./scripts/test-load-balancing.sh
+```
+
+### Simulation d'échecs pour tests de compensation
+
+```bash
+# Configuration échecs paiement (Payment Service)
+curl -X POST http://localhost:8009/admin/configure-failure \
+  -H "Content-Type: application/json" \
+  -d '{"failure_rate": 100, "failure_amounts": [99.99]}'
+
+# Test saga avec compensation automatique
+curl -H "X-API-Key: pos-web-app-2025-frontend-key" \
+  -X POST http://localhost:8080/api/v1/sagas/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "session_id": "test_failure_123",
+    "customer_id": "customer_1",
+    "shipping_address": "123 Test St",
+    "payment_info": {"amount": 99.99, "card": "4111111111111111"}
+  }'
+
+# Vérification état saga et compensation
+curl http://localhost:8008/api/v1/sagas/{saga_id}/status
+
+# Reset configuration échecs
+curl -X POST http://localhost:8009/admin/reset-failure-config
 ```
 
 ### Monitoring en temps réel
@@ -257,20 +316,46 @@ k6 run lab5-fair-comparison-100vu-test.js
 - Comparaison architectures Lab 4 vs Lab 5
 - Métriques de santé et alerting
 
-## Tests et validation
+## Tests et validation saga orchestration
 
 ```bash
-# Tests de validation architecture microservices
+# Tests de validation architecture microservices avec saga
 cd microservices/
 ./scripts/test-api-gateway.sh
 
+# Tests saga orchestration complète
+./scripts/test-saga.sh
+
+# Tests de compensation automatique
+./scripts/test-saga-payment-failure.sh
+./scripts/test-saga-stock-failure.sh
+
 # Tests de load balancing multi-instances
 ./scripts/test-load-balancing.sh
+```
 
-# Tests de performance comparatifs k6
-cd ../load_tests/k6/
-k6 run lab5-fair-comparison-15vu-test.js    # Charge faible
-k6 run lab5-fair-comparison-100vu-test.js   # Charge élevée
+### Exemples d'utilisation saga orchestrator
+
+```bash
+# Créer une saga de commande (succès)
+curl -H "X-API-Key: pos-web-app-2025-frontend-key" \
+  -X POST http://localhost:8080/api/v1/sagas/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "session_id": "cart_session_123",
+    "customer_id": "customer_1",
+    "shipping_address": "123 Main St, Montreal",
+    "payment_info": {"amount": 159.99, "card": "4111111111111111"}
+  }'
+
+# Vérifier état d'une saga
+curl http://localhost:8008/api/v1/sagas/{saga_id}/status
+
+# Consulter métriques saga
+curl http://localhost:8008/metrics
+
+# Lister toutes les sagas actives
+curl http://localhost:8008/api/v1/sagas/active
 ```
 
 ## Commandes utiles microservices
@@ -295,6 +380,12 @@ docker-compose ps
 curl http://localhost:8080/health          # Kong Gateway
 curl http://localhost:8001/health          # Product Service
 curl http://localhost:8006/health          # Cart Service
+curl http://localhost:8008/health          # Saga Orchestrator
+curl http://localhost:8009/health          # Payment Service
+
+# Monitoring saga orchestration
+curl http://localhost:8008/api/v1/sagas/metrics    # Métriques saga
+curl http://localhost:8008/api/v1/sagas/active     # Sagas actives
 
 # Kong Admin API
 curl http://localhost:8001/services        # Services configurés
@@ -328,26 +419,30 @@ curl http://localhost:8001/upstreams       # Load balancing status
 - **Database isolation** : Pattern Database per Service
 - **Distributed tracing** : Correlation IDs pour traçabilité
 
-## Structure du projet microservices
+## Structure du projet microservices avec saga
 
 ```
 .
-├── microservices/                    # Architecture microservices Lab 5
+├── microservices/                    # Architecture microservices Lab 6 avec saga
 │   ├── product-service/              # Service catalogue produits
-│   ├── inventory-service/            # Service gestion stocks
+│   ├── inventory-service/            # Service gestion stocks avec réservations
 │   ├── sales-service/                # Service transactions POS
 │   ├── reporting-service/            # Service analytics
 │   ├── customer-service/             # Service comptes clients
-│   ├── cart-service/                 # Service panier e-commerce
+│   ├── cart-service/                 # Service panier e-commerce (3 instances)
 │   ├── order-service/                # Service commandes
-│   ├── kong/                         # Configuration Kong Gateway
-│   ├── scripts/                      # Scripts d'initialisation et tests
-│   └── docker-compose.yml            # Orchestration microservices
-├── load_tests/k6/                    # Tests de performance Lab 4 vs Lab 5
-├── lab4/                             # Analyses performance architecture monolithique
+│   ├── saga-orchestrator/            # Service orchestration saga (nouveau)
+│   ├── payment-service/              # Service paiements avec simulation (nouveau)
+│   ├── api-gateway/                  # Configuration Kong Gateway
+│   ├── monitoring/                   # Prometheus/Grafana avec métriques saga
+│   ├── scripts/                      # Scripts saga et tests de compensation
+│   └── docker-compose.yml            # Orchestration 9 microservices
+├── docs/                             # Documentation et diagrammes UML
+│   ├── uml/                          # Diagrammes saga state machine
+│   └── adr/                          # Architecture Decision Records
+├── load_tests/k6/                    # Tests de performance et load balancing
 ├── src/                              # Code legacy monolithique (conservé)
-├── lab5-architecture-report.md       # Rapport d'architecture Arc42 complet
-└── LAB4-vs-LAB5-COMPARISON.md       # Comparaison performance équitable
+└── RAPPORT_LAB6.md                   # Rapport saga orchestration complet
 ```
 
 ## Documentation

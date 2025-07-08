@@ -82,8 +82,9 @@ Le **Lab 6** représente l'évolution vers une **architecture microservices avec
 
 ### 2. Décisions architecturales (ADRs)
 
-Les ADRs documentent les décisions clés du passage vers les microservices :
+Les ADRs documentent les décisions clés de l'évolution architecturale Lab 1 → Lab 6 :
 
+#### ADRs Microservices
 **[ADR-001 : Choix plateforme microservices](adr/001-choix-plateforme.md)**
 - Évolution des ADRs Lab 1-4 vers architecture distribuée
 - Justifications Kong Gateway et containerisation
@@ -104,6 +105,22 @@ Les ADRs documentent les décisions clés du passage vers les microservices :
 
 **[ADR-006 : API REST Flask-RESTX](adr/006-api-rest-flask-restx.md)**
 - Standards REST pour inter-service communication
+
+**[ADR-007 : Architecture Microservices](adr/007-architecture-microservices.md)**
+- Migration vers architecture microservices avec Database per Service
+- Décomposition bounded contexts et autonomie des équipes
+
+**[ADR-008 : Kong Gateway Load Balancing](adr/008-kong-gateway-load-balancing.md)**
+- API Gateway avec load balancing et observabilité
+- Authentication centralisée et rate limiting
+
+**[ADR-009 : Pattern Saga Orchestrée Synchrone](adr/009-saga-orchestration-pattern.md)**
+- Coordination transactions distribuées avec orchestrateur central
+- Machine d'état saga et compensation automatique
+
+**[ADR-010 : Communication via API Gateway](adr/010-communication-via-api-gateway.md)**
+- Kong Gateway pour communications saga orchestrator
+- Load balancing et sécurité centralisée
 
 ### 3. Diagrammes UML microservices
 
